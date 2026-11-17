@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A minimal To-Do List Life Dashboard with a Pomodoro focus timer, quick links, themes, and persistent local storage." />
+  <meta name="color-scheme" content="light dark" />
+  <title>Life Dashboard</title>
+
+  <!-- Emoji favicon, no external asset needed -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%85%3C/text%3E%3C/svg%3E" />
+
+  <!-- Apply the saved theme before first paint to avoid a flash of the wrong theme.
+       All application logic lives in js/script.js. -->
+  <script>
+    (function () {
+      try {
+        var t = JSON.parse(localStorage.getItem('ld.theme'));
+        if (t === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); }
+      } catch (e) { /* ignore corrupt storage */ }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span class="brand-name">Life Dashboard</span>
+    </div>
+    <button id="themeToggle" class="icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark mode" title="Toggle theme">
+      <span class="icon-sun" aria-hidden="true">☀</span>
+      <span class="icon-moon" aria-hidden="true">☾</span>
+    </button>
+  </header>
+
+  <main id="main" class="dashboard">
+    <!-- 1. Greeting + current date/time -->
+    <section class="card greeting-card" aria-labelledby="greeting-heading">
+      <h1 id="greeting-heading" class="visually-hidden">Greeting</h1>
+      <div id="greetingLine" class="greeting-line">
+        <span id="greetingWord" class="greeting-word">Good Morning</span><span id="nameArea" class="name-area"></span>
+      </div>
+      <div id="clock" class="clock" aria-label="Current time">--:--:--</div>
+      <div id="dateText" class="date-text" aria-label="Current date">—</div>
+    </section>
+
+    <!-- 2. Focus Timer -->
+    <section class="card timer-card" aria-labelledby="timer-heading">
+      <h2 id="timer-heading" class="card-title">Focus Timer</h2>
+      <div class="timer-ring-wrap">
+        <svg class="timer-ring" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Pomodoro progress">
+          <circle class="ring-track" cx="100" cy="100" r="90" />
+          <circle class="ring-progress" cx="100" cy="100" r="90" />
+        </svg>
+        <div id="timerDisplay" class="timer-time" aria-live="off">25:00</div>
+      </div>
+      <div class="timer-controls">
+        <button id="timerStart" type="button" class="btn btn--primary">Start</button>
+        <button id="timerStop" type="button" class="btn" disabled>Stop</button>
+        <button id="timerReset" type="button" class="btn">Reset</button>
+      </div>
+      <p class="timer-hint">Pomodoro duration can be changed in Settings.</p>
+    </section>
+
+    <!-- 5. Theme & personalization settings -->
+    <section class="card settings-card" aria-labelledby="settings-heading">
+      <h2 id="settings-heading" class="card-title">Settings</h2>
+
+      <div class="setting-row">
+        <label for="settingsNameInput" class="setting-label">Your name</label>
+        <input id="settingsNameInput" type="text" maxlength="40" placeholder="Enter your name" class="text-input" autocomplete="name" />
+      </div>
+
+      <div class="setting-row">
+        <label for="durationInput" class="setting-label">Pomodoro length (min)</label>
+        <div class="setting-inline">
+          <input id="durationInput" type="number" min="1" max="120" step="1" value="25" class="text-input text-input--narrow" />
+          <button id="durationSave" type="button" class="btn btn--small">Apply</button>
+        </div>
+      </div>
+
+      <div class="setting-row setting-row--theme">
+        <span class="setting-label">Theme</span>
+        <button id="themeToggleSettings" class="theme-toggle" type="button" aria-pressed="false">
+          <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+          <span id="themeToggleLabel" class="theme-toggle-label">Dark</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. To-Do List -->
+    <section class="card todo-card" aria-labelledby="todo-heading">
+      <div class="card-head">
+        <h2 id="todo-heading" class="card-title">To-Do List</h2>
+        <div class="sort-wrap">
+          <label for="taskSort" class="sort-label">Sort</label>
+          <select id="taskSort" class="sort-select">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="completedFirst">Completed first</option>
+            <option value="incompleteFirst">Incomplete first</option>
+            <option value="alphabetical">Alphabetical</option>
+          </select>
+        </div>
+      </div>
+
+      <form id="taskForm" class="add-form" autocomplete="off">
+        <input id="taskInput" type="text" maxlength="200" placeholder="Add a new task…" class="text-input text-input--grow" aria-label="New task" />
+        <button type="submit" class="btn btn--primary">Add</button>
+      </form>
+
+      <ul id="taskList" class="task-list" aria-live="polite"></ul>
+      <p id="taskEmpty" class="empty-state" hidden>No tasks yet. Add one above to get started.</p>
+    </section>
+
+    <!-- 4. Quick Links -->
+    <section class="card links-card" aria-labelledby="links-heading">
+      <h2 id="links-heading" class="card-title">Quick Links</h2>
+      <form id="linkForm" class="add-form add-form--links" autocomplete="off">
+        <input id="linkName" type="text" maxlength="60" placeholder="Name (e.g. GitHub)" class="text-input" aria-label="Link name" />
+        <input id="linkUrl" type="text" maxlength="500" placeholder="example.com" class="text-input text-input--grow" aria-label="Link URL" />
+        <button type="submit" class="btn btn--primary">Add Link</button>
+      </form>
+      <div id="linkList" class="link-list" aria-live="polite"></div>
+      <p id="linkEmpty" class="empty-state" hidden>No saved links yet.</p>
+    </section>
+  </main>
+
+  <!-- Transient status messages (duplicate task, invalid URL, timer done, …) -->
+  <div id="notification" class="notification" role="status" aria-live="polite"></div>
+
+  <footer class="site-footer">
+    <p>Built with vanilla HTML, CSS &amp; JavaScript · Data stays in your browser</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
